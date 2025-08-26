@@ -49,3 +49,5 @@ build/Release/
 # Yarn files
 yarn-error.log
 .yarn/
+
+hardware/st3215/python/venv

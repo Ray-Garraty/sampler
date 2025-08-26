@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self' http://localhost:3000;"
+      content="connect-src 'self' http://localhost:3000;"
     />
     <meta
       http-equiv="X-Content-Security-Policy"
       content="default-src 'self'; script-src 'self'"
     />
     <title>Автоматический пробоотборник</title>
-    <link href="node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+    <link href="../node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
   </head>
   <body>
     
@@ -40,7 +40,7 @@
 				</div>
       </div>
       <div class="col border align-content-center flex-wrap">
-        <button type="button" class="btn btn-lg btn-outline-secondary" id="Case temperature">t контроллера: ...</button>
+        <button type="button" class="btn btn-lg btn-outline-secondary" id="Case temperature">t RTC: ...</button>
       </div>
       <div class="col border align-content-center flex-wrap">
         <button type="button" class="btn btn-lg btn-outline-secondary" id="CPU temperature">t ЦП: ...</button>
@@ -48,19 +48,19 @@
     </div>
     <div class="row">
       <div class="col border">
-        <div class="p-3">
+        
           <button type="button" class="btn btn-lg btn-outline-secondary" id="T1">t1: н/д</button>
-        </div>
+        
       </div>
       <div class="col border">
-        <div class="p-3">
+        
           <button type="button" class="btn btn-lg btn-outline-secondary" id="T2">t2: н/д</button>
-        </div>
+        
       </div>
       <div class="col border">
-        <div class="p-3">
+        
           <button type="button" class="btn btn-lg btn-outline-secondary" id="T3">t3: н/д</button>
-        </div>
+        
       </div>
     </div>
     <div class="row">
@@ -69,13 +69,13 @@
       </div>
       <div class="col border">
         <div class="p-3">
-          <label for="servoAngle" class="form-label">Угол для поворота: </label>
+          <label for="servoAngle" class="form-label">Желаемая позиция: </label>
           <span><output for="servoAngle" id="servoAngleValue" aria-hidden="true"></output></span>
-          <input type="range" class="form-range" value="15" min="-360" max="360" id="servoAngle">
+          <input type="range" class="form-range" value="180" min="0" max="360" id="servoAngle">
         </div>
       </div>
       <div class="col border align-content-center flex-wrap">
-          <div class="p-3 border" id="Servo status">Текущая позиция сервопривода: ...</div>
+          <div id="Servo status">Текущая позиция сервопривода: ...</div>
       </div>
     </div>
     <div class="row">
@@ -139,7 +139,7 @@
       </div>
     </div>
 </div>
-    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
     <script type="module" src="index.js"></script>
   </body>
 </html>

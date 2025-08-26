@@ -3,14 +3,13 @@ import path from 'path';
 import express from 'express';
 import process from 'process';
 import { fileURLToPath } from 'url';
-import { fork } from 'child_process';
+import { fork, spawn } from 'child_process';
 import readRtc from './hardware/rtc.js';
 import managePump from './hardware/pump.js';
-import rotateServo from './hardware/servo.js';
+import SerialPort from "serialport";
 import toggleCooler from './hardware/cooler.js';
 import readCpuTemp from './hardware/cpu_temp.js';
 import readTubeSensor from './hardware/tubesensors.js';
-import readTemperatures from './hardware/tempsensors.js';
 import modbusServerLaunch from './communication/jsmodbus-server.js';
 
 const app = express();
@@ -35,7 +34,7 @@ let pumpDir = 'CW';
 let pumpMode = 'Continuous dosing';
 
 let servoPosition = 0;
-let temperatures = [null, null, null];
+let chamberTemps = [null, null, null];
 let isTubeEmpty = true;
 let caseTemperature = null;
 let dateTime = null;
@@ -57,14 +56,17 @@ modbusServerLaunch()
     console.error('\n---Could not connect to the Serial Port!---\n');
   });
 
-const inquireTemperatures = async () => {
-  try {
-    temperatures = await Promise.all(readTemperatures());
-  } catch (err) {
-    console.error(err);
-  }
+const chamberTempsProcess = fork(__dirname + '/hardware/tempsensors.js');
+chamberTempsProcess.on('message', (data) => {
+  chamberTemps = data;
+});
+chamberTempsProcess.on('close', (code) => {
+  console.log(`Chamber temperatures process exited with code ${code}`);
+});
+const inquireChamberTemps = async () => {
+  await chamberTempsProcess.send('Give me the chamber temperatures');
 };
-setInterval(inquireTemperatures, tempInquirePeriod);
+setInterval(inquireChamberTemps, tempInquirePeriod);
 
 const inquireTubeSensor = async () => {
   isTubeEmpty = await readTubeSensor();
@@ -121,7 +123,7 @@ app.get('/servoStatus', (req, res) => {
 });
 
 app.get('/temperatures', (req, res) => {
-  res.send(temperatures);
+  res.send(chamberTemps);
 });
 
 app.get('/caseTemperature', (req, res) => {
@@ -167,10 +169,41 @@ app.post('/managePump', async (req, res) => {
 });
 
 app.post('/manageServo', (req, res) => {
-  const requestedAngle = req.body.angle;
-  console.log('Received servo rotate request with angle:', requestedAngle);
-  servoPosition = rotateServo(servoPosition, requestedAngle);
-  res.json({ message: 'New servo position is', data: { position: servoPosition } });
+  const getCp2102PortPath = async () => {
+    const ports = await SerialPort.SerialPort.list();
+    const [cp2102Port] = ports.filter((port) => port.pnpId === "usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0");
+    if (!cp2102Port) {
+      throw new Error('USB-CP2102 not found');
+    }
+    const { path } = cp2102Port;
+    console.log("SERVO PORT PATH:", path);
+    return path;
+  };
+
+  getCp2102PortPath()
+    .then((path) => {
+      const requestedAngle = req.body.angle;
+      const pythonVenvPath = __dirname + '/hardware/st3215/python/venv/bin/python';
+      const pyScriptPath = __dirname + '/hardware/st3215/python/servo.py';
+      const pythonProcess = spawn(pythonVenvPath, [pyScriptPath]);
+      pythonProcess.stdin.write(`${path},${requestedAngle}\n`);
+      pythonProcess.stdin.end();
+      
+      pythonProcess.stdout.on('data', (newAngle) => {
+        console.log(`Received from Python script: ${newAngle.toString().trim()}`);
+        servoPosition = Number(newAngle);
+        res.json({ message: 'New servo position is', data: { position: servoPosition } });
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+      console.error(`Python script error: ${data.toString()}`);
+      res.json({ message: 'Servo python error', data: { position: servoPosition } });
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.json({ message: 'Servo manage error', data: { position: servoPosition } });
+    });
 });
 
 process.on('uncaughtException', (err, origin) => {

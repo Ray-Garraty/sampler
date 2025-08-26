@@ -28,7 +28,7 @@ import {
   timeInputElt,
   tubeSensorField,
   volumeInputElt,
-} from "./frontend/elements.js";
+} from "./elements.js";
 import {
   setChamberTempFieldStyle,
   setCoolerBtnStyle,
@@ -40,7 +40,7 @@ import {
   setRtcTempEltStyle,
   setServoStatusEltStyle,
   setTubeSensorFieldStyle,
-} from "./frontend/stylers.js";
+} from "./stylers.js";
 
 const hostAddress = "http://localhost:3000/";
 

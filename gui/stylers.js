@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 
 export const setCoolerBtnStyle = (button, textSpan, spinner, isOn) => {
-  textSpan.innerText = isOn ? "Выключить Пельтье" : "Включить Пельтье";
+  textSpan.innerText = isOn ? "Выключи Пельтье" : "Включить Пельтье";
   button.classList.remove(...button.classList);
   button.classList.add("btn", "btn-lg", "fw-bold", "fs-4");
   const outlineClass = isOn ? "btn-danger" : "btn-success";
@@ -43,7 +43,7 @@ export const setPumpElementsStyle = (
   }
   textSpan.innerText = isOn
     ? "Остановить дозирование"
-    : "Запустить дозирование";
+    : "\u00A0 Запустить \u00A0 дозирование";
   button.classList.remove(...button.classList);
   button.classList.add("btn", "btn-lg", "fw-bold", "fs-4");
   const outlineClass = isOn ? "btn-danger" : "btn-success";
@@ -89,7 +89,7 @@ export const setRtcTempEltStyle = (element, t, threshold) => {
   const outlineClass =
     t > threshold ? "btn-outline-danger" : "btn-outline-success";
   element.classList.add(outlineClass);
-  element.innerText = `t контроллера: ${t}⁰C`;
+  element.innerText = `t RTC: ${t}⁰C`;
 };
 
 export const setCpuTempBtnStyle = (element, t, threshold) => {
@@ -104,7 +104,7 @@ export const setCpuTempBtnStyle = (element, t, threshold) => {
 export const setModbusFieldStyle = (element, isReady) => {
   const colorClass = isReady ? "text-success" : "text-danger";
   element.classList.add(colorClass);
-  element.innerText = isReady ? "MODBUS готов" : "Проверь USB<->RS485";
+  element.innerText = isReady ? "MODBUS готов" : "Проверь USB-RS485";
 };
 
 export const setServoStatusEltStyle = (element, angle) => {

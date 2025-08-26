@@ -5,29 +5,30 @@ const sensorsIDs = sensor.list().filter((id) => id.startsWith("28-"));
 // const sensorsIDs = ['28-00000053e471', '28-8b96451f64ff', '28-8b96451f64ff'];
 console.log({ sensorsIDs });
 
-const inquireTemps = () => {
-  if (sensorsIDs.length === 0) {
-    return Promise.reject(
-      console.warn(
-        "Please connect at least 1 temperature sensor and restart the app",
-      ),
-    );
-  }
-  const tempPromises = sensorsIDs.map(
-    (sensorId) =>
-      new Promise((resolve, reject) => {
-        sensor.get(sensorId, (error, data) => {
-          if (error) {
-            console.error(error);
-            reject(error);
-          } else {
-            console.log(sensorId, data);
-            resolve(data);
-          }
-        });
-      }),
+const period = 3000; // <3000 is useless
+const temperatures = [null, null, null];
+
+if (sensorsIDs.length === 0) {
+  console.warn(
+    "Please connect at least 1 temperature sensor and restart the app",
   );
-  return tempPromises;
+}
+
+const inquireTemps = () => {
+  sensorsIDs.forEach((sensorId, i) => {
+    sensor.get(sensorId, (error, data) => {
+      if (error) {
+        console.error(error);
+      } else {
+        console.log(sensorId, data);
+        temperatures[i] = data;
+      }
+    });
+  });
 };
 
-export default inquireTemps;
+setInterval(inquireTemps, period);
+
+process.on("message", () => {
+  process.send(temperatures);
+});
